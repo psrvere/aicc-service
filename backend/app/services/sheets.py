@@ -18,6 +18,10 @@ CALL_LOG_HEADERS = [
 ]
 
 
+def get_sheets_service() -> "SheetsService":
+    return SheetsService()
+
+
 class SheetsService:
     def __init__(self):
         creds = json.loads(settings.google_service_account_json)
