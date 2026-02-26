@@ -9,3 +9,16 @@ build/
 .cxx
 *.apk
 *.aab
+
+# Signing keys
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+keystore.properties
+
+# Secrets / environment
+.env
+.env.*
+google-services.json
