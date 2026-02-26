@@ -8,6 +8,13 @@ import com.aicc.coldcall.core.model.DashboardStats
 import com.aicc.coldcall.core.model.DealStage
 import com.aicc.coldcall.core.model.Disposition
 
+inline fun <reified T : Enum<T>> safeValueOf(name: String, default: T): T =
+    try {
+        enumValueOf<T>(name)
+    } catch (_: IllegalArgumentException) {
+        default
+    }
+
 fun ContactDto.toDomain(): Contact = Contact(
     id = id,
     name = name,
@@ -15,7 +22,7 @@ fun ContactDto.toDomain(): Contact = Contact(
     business = business,
     city = city,
     industry = industry,
-    dealStage = DealStage.valueOf(dealStage),
+    dealStage = safeValueOf(dealStage, DealStage.New),
     lastCalled = lastCalled,
     callCount = callCount,
     lastCallSummary = lastCallSummary,
@@ -30,9 +37,9 @@ fun CallLogDto.toDomain(): CallLog = CallLog(
     contactId = contactId,
     timestamp = timestamp,
     durationSeconds = durationSeconds,
-    disposition = Disposition.valueOf(disposition),
+    disposition = safeValueOf(disposition, Disposition.NoAnswer),
     summary = summary,
-    dealStage = DealStage.valueOf(dealStage),
+    dealStage = safeValueOf(dealStage, DealStage.New),
     recordingUrl = recordingUrl,
     transcript = transcript
 )
@@ -42,7 +49,7 @@ fun CallPlanItemDto.toDomain(): CallPlanItem = CallPlanItem(
     name = name,
     phone = phone,
     business = business,
-    dealStage = DealStage.valueOf(dealStage),
+    dealStage = safeValueOf(dealStage, DealStage.New),
     nextFollowUp = nextFollowUp,
     callCount = callCount,
     lastCallSummary = lastCallSummary,
@@ -65,6 +72,6 @@ fun DashboardStatsDto.toDomain(): DashboardStats = DashboardStats(
 
 fun AISummaryDto.toDomain(): AISummary = AISummary(
     summary = summary,
-    recommendedDealStage = DealStage.valueOf(recommendedDealStage),
+    recommendedDealStage = safeValueOf(recommendedDealStage, DealStage.New),
     nextAction = nextAction
 )
