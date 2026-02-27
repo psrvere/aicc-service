@@ -62,8 +62,11 @@ class CallRecordingService : Service() {
 
         serviceScope.launch {
             recorderMutex.withLock {
+                var filePath: String? = null
+                var recordingId: Long? = null
                 try {
-                    val filePath = recordingRepository.startRecording(contactId)
+                    filePath = recordingRepository.startRecording(contactId)
+                    recordingId = recordingRepository.getCurrentRecordingId()
                     val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         MediaRecorder(this@CallRecordingService)
                     } else {
@@ -83,6 +86,9 @@ class CallRecordingService : Service() {
                     mediaRecorder = recorder
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to start recording", e)
+                    if (recordingId != null && filePath != null) {
+                        recordingRepository.deleteRecording(recordingId, filePath)
+                    }
                     stopSelf()
                 }
             }

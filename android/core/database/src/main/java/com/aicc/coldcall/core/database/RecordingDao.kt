@@ -21,4 +21,7 @@ interface RecordingDao {
 
     @Query("DELETE FROM recordings WHERE is_uploaded = 1 AND created_at < :threshold")
     suspend fun deleteUploadedOlderThan(threshold: Long): Int
+
+    @Query("DELETE FROM recordings WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }

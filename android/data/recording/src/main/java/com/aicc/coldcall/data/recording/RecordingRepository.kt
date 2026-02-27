@@ -1,9 +1,11 @@
 package com.aicc.coldcall.data.recording
 
+import android.util.Log
 import com.aicc.coldcall.core.database.RecordingDao
 import com.aicc.coldcall.core.database.RecordingEntity
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,4 +48,25 @@ class RecordingRepository @Inject constructor(
         recordingDao.markUploaded(id, url)
 
     suspend fun getCurrentRecordingId(): Long? = mutex.withLock { currentRecordingId }
+
+    suspend fun deleteRecording(id: Long, filePath: String) = mutex.withLock {
+        try {
+            recordingDao.deleteById(id)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to delete recording row $id", e)
+        }
+        try {
+            File(filePath).delete()
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to delete recording file $filePath", e)
+        }
+        if (currentRecordingId == id) {
+            currentFilePath = null
+            currentRecordingId = null
+        }
+    }
+
+    companion object {
+        private const val TAG = "RecordingRepository"
+    }
 }

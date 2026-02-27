@@ -9,7 +9,9 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -94,5 +96,34 @@ class RecordingRepositoryTest {
         repository.startRecording("c1")
 
         assertEquals(99L, repository.getCurrentRecordingId())
+    }
+
+    @Test
+    fun `deleteRecording removes DB row and clears state`() = runTest {
+        val file = File.createTempFile("call_c1_1000", ".m4a")
+        try {
+            every { fileManager.createRecordingFile("c1", 1000L) } returns file
+            coEvery { recordingDao.insert(any()) } returns 42L
+
+            repository.startRecording("c1")
+            assertEquals(42L, repository.getCurrentRecordingId())
+
+            repository.deleteRecording(42L, file.absolutePath)
+
+            coVerify { recordingDao.deleteById(42L) }
+            assertNull(repository.getCurrentRecordingId())
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
+    fun `deleteRecording deletes file from disk`() = runTest {
+        val file = File.createTempFile("call_c1_1000", ".m4a")
+        assertTrue(file.exists())
+
+        repository.deleteRecording(1L, file.absolutePath)
+
+        assertFalse(file.exists())
     }
 }
