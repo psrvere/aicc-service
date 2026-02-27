@@ -7,16 +7,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import com.aicc.coldcall.feature.callplan.CALL_PLAN_ROUTE
 import com.aicc.coldcall.feature.callplan.callPlanScreen
 import com.aicc.coldcall.feature.calling.postCallScreen
 import com.aicc.coldcall.feature.calling.preCallScreen
+import com.aicc.coldcall.feature.contacts.contactsGraph
 import com.aicc.coldcall.feature.settings.SettingsScreen
-import androidx.navigation.compose.composable
-import androidx.compose.material3.Text
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Alignment
+
+const val DASHBOARD_ROUTE = "dashboard"
+const val SETTINGS_ROUTE = "settings"
 
 @Composable
 fun AppNavHost(
@@ -57,19 +57,13 @@ fun AppNavHost(
             },
         )
 
-        composable("contacts") {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Contacts — coming soon")
-            }
+        contactsGraph(navController)
+
+        composable(DASHBOARD_ROUTE) {
+            PlaceholderScreen("Dashboard")
         }
 
-        composable("dashboard") {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Dashboard — coming soon")
-            }
-        }
-
-        composable("settings") {
+        composable(SETTINGS_ROUTE) {
             SettingsScreen()
         }
     }

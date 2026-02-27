@@ -4,6 +4,8 @@ import com.aicc.coldcall.core.database.ContactDao
 import com.aicc.coldcall.core.database.toEntity
 import com.aicc.coldcall.core.database.toDomain
 import com.aicc.coldcall.core.model.Contact
+import com.aicc.coldcall.core.model.ContactCreate
+import com.aicc.coldcall.core.model.ContactUpdate
 import com.aicc.coldcall.core.network.AiccApiService
 import com.aicc.coldcall.core.network.dto.ContactCreateDto
 import com.aicc.coldcall.core.network.dto.ContactUpdateDto
@@ -48,13 +50,35 @@ class ContactRepository @Inject constructor(
     suspend fun getContact(id: String): Contact =
         api.getContact(id).toDomain()
 
-    suspend fun createContact(dto: ContactCreateDto): Contact {
+    suspend fun createContact(create: ContactCreate): Contact {
+        val dto = ContactCreateDto(
+            name = create.name,
+            phone = create.phone,
+            business = create.business,
+            city = create.city,
+            industry = create.industry,
+            dealStage = create.dealStage?.name,
+            notes = create.notes,
+            nextFollowUp = create.nextFollowUp,
+        )
         val contact = api.createContact(dto).toDomain()
         contactDao.insert(contact.toEntity())
         return contact
     }
 
-    suspend fun updateContact(id: String, dto: ContactUpdateDto): Contact {
+    suspend fun updateContact(id: String, update: ContactUpdate): Contact {
+        val dto = ContactUpdateDto(
+            name = update.name,
+            phone = update.phone,
+            business = update.business,
+            city = update.city,
+            industry = update.industry,
+            dealStage = update.dealStage?.name,
+            notes = update.notes,
+            nextFollowUp = update.nextFollowUp,
+            lastCallSummary = update.lastCallSummary,
+            recordingLink = update.recordingLink,
+        )
         val contact = api.updateContact(id, dto).toDomain()
         contactDao.insert(contact.toEntity())
         return contact

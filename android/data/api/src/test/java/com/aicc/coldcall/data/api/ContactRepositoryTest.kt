@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import com.aicc.coldcall.core.database.ContactDao
 import com.aicc.coldcall.core.database.ContactEntity
 import com.aicc.coldcall.core.model.Contact
+import com.aicc.coldcall.core.model.ContactCreate
+import com.aicc.coldcall.core.model.ContactUpdate
 import com.aicc.coldcall.core.model.DealStage
 import com.aicc.coldcall.core.network.AiccApiService
 import com.aicc.coldcall.core.network.dto.ContactCreateDto
@@ -99,11 +101,11 @@ class ContactRepositoryTest {
 
     @Test
     fun `createContact calls API and inserts in cache`() = runTest {
-        val createDto = ContactCreateDto(name = "Bob", phone = "555-0002")
+        val create = ContactCreate(name = "Bob", phone = "555-0002")
         val responseDto = contactDto.copy(id = "2", name = "Bob", phone = "555-0002")
-        coEvery { api.createContact(createDto) } returns responseDto
+        coEvery { api.createContact(any()) } returns responseDto
 
-        val contact = repository.createContact(createDto)
+        val contact = repository.createContact(create)
         assertEquals("Bob", contact.name)
 
         coVerify { contactDao.insert(any()) }
@@ -111,11 +113,11 @@ class ContactRepositoryTest {
 
     @Test
     fun `updateContact calls API and updates cache`() = runTest {
-        val updateDto = ContactUpdateDto(name = "Alice Updated")
+        val update = ContactUpdate(name = "Alice Updated")
         val updatedDto = contactDto.copy(name = "Alice Updated")
-        coEvery { api.updateContact("1", updateDto) } returns updatedDto
+        coEvery { api.updateContact(eq("1"), any()) } returns updatedDto
 
-        val contact = repository.updateContact("1", updateDto)
+        val contact = repository.updateContact("1", update)
         assertEquals("Alice Updated", contact.name)
 
         coVerify { contactDao.insert(any()) }
