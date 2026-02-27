@@ -56,9 +56,11 @@ class RecordingRepository @Inject constructor(
             Log.w(TAG, "Failed to delete recording row $id", e)
         }
         try {
-            File(filePath).delete()
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to delete recording file $filePath", e)
+            if (!File(filePath).delete()) {
+                Log.w(TAG, "Failed to delete recording file $filePath")
+            }
+        } catch (e: SecurityException) {
+            Log.w(TAG, "SecurityException deleting recording file $filePath", e)
         }
         if (currentRecordingId == id) {
             currentFilePath = null
