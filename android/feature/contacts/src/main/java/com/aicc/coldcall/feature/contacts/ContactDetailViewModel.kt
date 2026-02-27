@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 import javax.inject.Inject
 
 data class ContactDetailUiState(
@@ -46,6 +47,8 @@ class ContactDetailViewModel @Inject constructor(
             try {
                 val contact = contactRepository.getContact(contactId)
                 _uiState.update { it.copy(contact = contact, isLoading = false) }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
@@ -67,6 +70,8 @@ class ContactDetailViewModel @Inject constructor(
             try {
                 contactRepository.deleteContact(contactId)
                 _uiState.update { it.copy(isDeleted = true) }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
             }
