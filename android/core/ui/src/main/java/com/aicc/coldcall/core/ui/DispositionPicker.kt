@@ -11,14 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aicc.coldcall.core.model.Disposition
 
-private val dispositionLabels = mapOf(
-    Disposition.Connected to "Connected",
-    Disposition.NoAnswer to "No Answer",
-    Disposition.Voicemail to "Voicemail",
-    Disposition.Callback to "Callback",
-    Disposition.NotInterested to "Not Interested",
-    Disposition.WrongNumber to "Wrong Number",
-)
+private fun Disposition.label(): String = when (this) {
+    Disposition.Connected -> "Connected"
+    Disposition.NoAnswer -> "No Answer"
+    Disposition.Voicemail -> "Voicemail"
+    Disposition.Callback -> "Callback"
+    Disposition.NotInterested -> "Not Interested"
+    Disposition.WrongNumber -> "Wrong Number"
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -36,7 +36,7 @@ fun DispositionPicker(
             FilterChip(
                 selected = disposition == selected,
                 onClick = { onSelect(disposition) },
-                label = { Text(dispositionLabels[disposition] ?: disposition.name) },
+                label = { Text(disposition.label()) },
             )
         }
     }
