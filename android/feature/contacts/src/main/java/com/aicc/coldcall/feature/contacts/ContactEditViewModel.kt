@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 data class ContactEditUiState(
@@ -40,6 +41,7 @@ class ContactEditViewModel @Inject constructor(
 
     private val contactId: String? = savedStateHandle["contactId"]
 
+    private val isSubmitting = AtomicBoolean(false)
     private val _uiState = MutableStateFlow(ContactEditUiState())
     val uiState: StateFlow<ContactEditUiState> = _uiState.asStateFlow()
 
@@ -107,6 +109,8 @@ class ContactEditViewModel @Inject constructor(
     }
 
     fun save() {
+        if (!isSubmitting.compareAndSet(false, true)) return
+
         val state = _uiState.value
         var hasError = false
 
@@ -118,10 +122,13 @@ class ContactEditViewModel @Inject constructor(
             _uiState.update { it.copy(phoneError = "Phone is required") }
             hasError = true
         }
-        if (hasError) return
+        if (hasError) {
+            isSubmitting.set(false)
+            return
+        }
 
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
             try {
                 if (contactId != null) {
                     contactRepository.updateContact(
@@ -154,6 +161,8 @@ class ContactEditViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false, isSaved = true) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
+            } finally {
+                isSubmitting.set(false)
             }
         }
     }
