@@ -13,9 +13,9 @@ import com.aicc.coldcall.feature.callplan.callPlanScreen
 import com.aicc.coldcall.feature.calling.postCallScreen
 import com.aicc.coldcall.feature.calling.preCallScreen
 import com.aicc.coldcall.feature.contacts.contactsGraph
+import com.aicc.coldcall.feature.dashboard.dashboardScreen
 import com.aicc.coldcall.feature.settings.SettingsScreen
 
-const val DASHBOARD_ROUTE = "dashboard"
 const val SETTINGS_ROUTE = "settings"
 
 @Composable
@@ -58,9 +58,7 @@ fun AppNavHost(
 
         contactsGraph(navController)
 
-        composable(DASHBOARD_ROUTE) {
-            PlaceholderScreen("Dashboard")
-        }
+        dashboardScreen()
 
         composable(SETTINGS_ROUTE) {
             SettingsScreen()

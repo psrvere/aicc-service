@@ -53,6 +53,7 @@ dependencies {
     implementation(project(":feature:calling"))
     implementation(project(":feature:contacts"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:dashboard"))
 
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
