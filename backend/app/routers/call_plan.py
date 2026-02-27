@@ -40,7 +40,7 @@ def _to_plan_item(contact: dict, reason: str) -> dict:
         "id": contact["id"],
         "name": contact["name"],
         "phone": contact["phone"],
-        "business": contact.get("business"),
+        "contact_person": contact.get("contact_person"),
         "deal_stage": contact.get("deal_stage"),
         "next_follow_up": contact.get("next_follow_up"),
         "call_count": contact.get("call_count", 0),

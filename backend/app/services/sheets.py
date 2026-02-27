@@ -6,15 +6,16 @@ import gspread
 
 from app.config import settings
 
+# Must match the actual Google Sheet column order exactly.
 CONTACT_HEADERS = [
-    "id", "name", "phone", "business", "city", "industry",
-    "deal_stage", "last_called", "call_count", "last_call_summary",
-    "recording_link", "next_follow_up", "notes", "created_at",
+    "id", "name", "contact_person", "phone", "city", "industry",
+    "source", "deal_stage", "last_called", "next_follow_up", "call_count",
+    "last_call_summary", "recording_link", "notes",
 ]
 
 CALL_LOG_HEADERS = [
-    "id", "contact_id", "timestamp", "duration_seconds",
-    "disposition", "summary", "deal_stage", "recording_url", "transcript",
+    "id", "contact_id", "contact_name", "timestamp", "duration_seconds",
+    "disposition", "summary", "recording_url", "deal_stage", "deal_stage_after",
 ]
 
 
@@ -35,7 +36,9 @@ class SheetsService:
         result = {}
         for key in CONTACT_HEADERS:
             val = record.get(key, "")
-            if key == "call_count":
+            if key == "id":
+                result[key] = str(val) if val != "" else None
+            elif key == "call_count":
                 result[key] = int(val) if val != "" else 0
             elif val == "":
                 result[key] = None
@@ -57,8 +60,13 @@ class SheetsService:
         return result
 
     def get_all_contacts(self) -> list[dict]:
-        records = self._contacts_ws.get_all_records()
-        return [self._normalize_contact(r) for r in records]
+        rows = self._contacts_ws.get_all_values()
+        if len(rows) <= 1:
+            return []
+        return [
+            self._normalize_contact(dict(zip(CONTACT_HEADERS, row)))
+            for row in rows[1:]
+        ]
 
     def get_contact_by_id(self, contact_id: str) -> dict | None:
         for c in self.get_all_contacts():
@@ -77,22 +85,21 @@ class SheetsService:
 
     def create_contact(self, data: dict) -> dict:
         contact_id = str(uuid.uuid4())
-        now = datetime.now(UTC).isoformat()
         row = [
             contact_id,
             data["name"],
+            data.get("contact_person", ""),
             data["phone"],
-            data.get("business", ""),
             data.get("city", ""),
             data.get("industry", ""),
+            data.get("source", ""),
             data.get("deal_stage", "New"),
             "",   # last_called
+            data.get("next_follow_up", ""),
             0,    # call_count
             "",   # last_call_summary
             "",   # recording_link
-            data.get("next_follow_up", ""),
             data.get("notes", ""),
-            now,  # created_at
         ]
         self._contacts_ws.append_row(row)
         return self._normalize_contact(dict(zip(CONTACT_HEADERS, row)))
@@ -107,7 +114,8 @@ class SheetsService:
                 col = CONTACT_HEADERS.index(key) + 1
                 self._contacts_ws.update_cell(row_num, col, value)
 
-        return self.get_contact_by_id(contact_id)
+        row = self._contacts_ws.row_values(row_num)
+        return self._normalize_contact(dict(zip(CONTACT_HEADERS, row)))
 
     def delete_contact(self, contact_id: str) -> None:
         row_num = self._find_contact_row(contact_id)
@@ -121,27 +129,34 @@ class SheetsService:
         row = [
             log_id,
             data["contact_id"],
+            data.get("contact_name") or "",
             now,
             data["duration_seconds"],
             data["disposition"],
-            data.get("summary", ""),
-            data.get("deal_stage", ""),
-            data.get("recording_url", ""),
-            data.get("transcript", ""),
+            data.get("summary") or "",
+            data.get("recording_url") or "",
+            data.get("deal_stage") or "",
+            data.get("deal_stage_after") or "",
         ]
         self._call_logs_ws.append_row(row)
         return self._normalize_call_log(dict(zip(CALL_LOG_HEADERS, row)))
 
     def get_call_logs_for_contact(self, contact_id: str) -> list[dict]:
-        records = self._call_logs_ws.get_all_records()
+        rows = self._call_logs_ws.get_all_values()
+        if len(rows) <= 1:
+            return []
         return [
-            self._normalize_call_log(r) for r in records
-            if r.get("contact_id") == contact_id
+            self._normalize_call_log(dict(zip(CALL_LOG_HEADERS, row)))
+            for row in rows[1:]
+            if row[1] == contact_id
         ]
 
     def get_call_logs_by_date(self, date_str: str) -> list[dict]:
-        records = self._call_logs_ws.get_all_records()
+        rows = self._call_logs_ws.get_all_values()
+        if len(rows) <= 1:
+            return []
         return [
-            self._normalize_call_log(r) for r in records
-            if str(r.get("timestamp", "")).startswith(date_str)
+            self._normalize_call_log(dict(zip(CALL_LOG_HEADERS, row)))
+            for row in rows[1:]
+            if row[3].startswith(date_str)
         ]

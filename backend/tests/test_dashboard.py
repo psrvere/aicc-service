@@ -4,21 +4,21 @@ from datetime import date
 def _make_call_log(disposition="Connected", timestamp=None):
     return {
         "id": "log-1", "contact_id": "uuid-1",
-        "timestamp": timestamp or f"{date.today().isoformat()}T10:00:00",
+        "contact_name": None, "timestamp": timestamp or f"{date.today().isoformat()}T10:00:00",
         "duration_seconds": 60, "disposition": disposition,
-        "summary": None, "deal_stage": "New",
-        "recording_url": None, "transcript": None,
+        "summary": None, "recording_url": None,
+        "deal_stage": "New", "deal_stage_after": None,
     }
 
 
 def _make_contact(deal_stage="New"):
     return {
-        "id": "uuid-1", "name": "Alice", "phone": "123",
-        "business": None, "city": None, "industry": None,
-        "deal_stage": deal_stage, "last_called": None, "call_count": 0,
+        "id": "uuid-1", "name": "Alice", "contact_person": None,
+        "phone": "123", "city": None, "industry": None,
+        "source": None, "deal_stage": deal_stage, "last_called": None,
+        "next_follow_up": None, "call_count": 0,
         "last_call_summary": None, "recording_link": None,
-        "next_follow_up": None, "notes": None,
-        "created_at": "2026-01-01T00:00:00",
+        "notes": None,
     }
 
 

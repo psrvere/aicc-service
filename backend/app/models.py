@@ -31,9 +31,10 @@ class Disposition(str, Enum):
 class ContactCreate(BaseModel):
     name: str
     phone: str
-    business: Optional[str] = None
+    contact_person: Optional[str] = None
     city: Optional[str] = None
     industry: Optional[str] = None
+    source: Optional[str] = None
     deal_stage: DealStage = DealStage.New
     notes: Optional[str] = None
     next_follow_up: Optional[date] = None
@@ -42,9 +43,10 @@ class ContactCreate(BaseModel):
 class ContactUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
-    business: Optional[str] = None
+    contact_person: Optional[str] = None
     city: Optional[str] = None
     industry: Optional[str] = None
+    source: Optional[str] = None
     deal_stage: Optional[DealStage] = None
     notes: Optional[str] = None
     next_follow_up: Optional[date] = None
@@ -55,18 +57,18 @@ class ContactUpdate(BaseModel):
 class Contact(BaseModel):
     id: str
     name: str
+    contact_person: Optional[str] = None
     phone: str
-    business: Optional[str] = None
     city: Optional[str] = None
     industry: Optional[str] = None
+    source: Optional[str] = None
     deal_stage: DealStage = DealStage.New
     last_called: Optional[datetime] = None
+    next_follow_up: Optional[date] = None
     call_count: int = 0
     last_call_summary: Optional[str] = None
     recording_link: Optional[str] = None
-    next_follow_up: Optional[date] = None
     notes: Optional[str] = None
-    created_at: datetime
 
 
 # --- Call log models ---
@@ -102,7 +104,7 @@ class CallPlanItem(BaseModel):
     id: str
     name: str
     phone: str
-    business: Optional[str] = None
+    contact_person: Optional[str] = None
     deal_stage: DealStage
     next_follow_up: Optional[date] = None
     call_count: int

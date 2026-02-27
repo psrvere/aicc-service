@@ -1,11 +1,11 @@
 def _make_contact(**overrides):
     contact = {
-        "id": "uuid-1", "name": "Alice", "phone": "123",
-        "business": None, "city": None, "industry": None,
-        "deal_stage": "New", "last_called": None, "call_count": 0,
+        "id": "uuid-1", "name": "Alice", "contact_person": None,
+        "phone": "123", "city": None, "industry": None,
+        "source": None, "deal_stage": "New", "last_called": None,
+        "next_follow_up": None, "call_count": 0,
         "last_call_summary": None, "recording_link": None,
-        "next_follow_up": None, "notes": None,
-        "created_at": "2026-01-01T00:00:00",
+        "notes": None,
     }
     contact.update(overrides)
     return contact

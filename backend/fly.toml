@@ -1,4 +1,4 @@
-app = "aicc-backend"
+app = "backend-withered-wildflower-3800"
 primary_region = "sjc"
 
 [build]

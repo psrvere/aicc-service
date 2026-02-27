@@ -50,7 +50,7 @@ def test_summarize_recording(client, mock_sheets):
 
     mock_sheets.get_contact_by_id.return_value = {
         "id": "uuid-1", "name": "Alice", "phone": "123",
-        "business": "Acme", "industry": "Tech", "deal_stage": "Qualified",
+        "industry": "Tech", "deal_stage": "Qualified",
     }
 
     response = client.post(

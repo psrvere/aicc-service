@@ -30,12 +30,12 @@ async def log_call(
     # Build call log data
     log_data = {
         "contact_id": call.contact_id,
+        "contact_name": contact.get("name") or "",
         "duration_seconds": call.duration_seconds,
         "disposition": call.disposition.value,
         "summary": call.summary or "",
-        "deal_stage": call.deal_stage.value if call.deal_stage else contact.get("deal_stage", ""),
+        "deal_stage": call.deal_stage.value if call.deal_stage else contact.get("deal_stage") or "",
         "recording_url": call.recording_url or "",
-        "transcript": call.transcript[:49000] if call.transcript else "",
     }
     call_log = sheets.append_call_log(log_data)
 
@@ -60,6 +60,9 @@ async def log_call(
     if next_follow_up is not None:
         update_data["next_follow_up"] = next_follow_up
 
-    sheets.update_contact(call.contact_id, update_data)
+    try:
+        sheets.update_contact(call.contact_id, update_data)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Contact not found")
 
     return call_log

@@ -40,9 +40,10 @@ def test_contact_create_required_fields_only():
     assert c.name == "Alice"
     assert c.phone == "123"
     assert c.deal_stage == DealStage.New
-    assert c.business is None
+    assert c.contact_person is None
     assert c.city is None
     assert c.industry is None
+    assert c.source is None
     assert c.notes is None
     assert c.next_follow_up is None
 
@@ -53,14 +54,16 @@ def test_contact_create_all_fields():
     c = ContactCreate(
         name="Bob",
         phone="456",
-        business="Acme",
+        contact_person="Bob Smith",
         city="NYC",
         industry="Tech",
+        source="IndiaMart",
         deal_stage=DealStage.Qualified,
         notes="VIP",
         next_follow_up=date(2026, 3, 1),
     )
-    assert c.business == "Acme"
+    assert c.contact_person == "Bob Smith"
+    assert c.source == "IndiaMart"
     assert c.deal_stage == DealStage.Qualified
     assert c.next_follow_up == date(2026, 3, 1)
 
@@ -78,20 +81,19 @@ def test_contact_update_all_optional():
 
 
 def test_contact_has_all_fields():
-    from datetime import date, datetime
-
     c = Contact(
         id="uuid-1",
         name="Alice",
         phone="123",
         deal_stage=DealStage.New,
         call_count=0,
-        created_at=datetime(2026, 1, 1),
     )
     assert c.id == "uuid-1"
     assert c.call_count == 0
     assert c.last_called is None
     assert c.recording_link is None
+    assert c.contact_person is None
+    assert c.source is None
 
 
 def test_call_log_create_required_fields():

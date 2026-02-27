@@ -56,8 +56,8 @@ async def summarize_recording(
 
     result = groq.summarize(
         transcript=request.transcript,
-        contact_name=contact.get("name", ""),
-        business=contact.get("business"),
+        contact_name=contact.get("contact_person") or contact.get("name", ""),
+        business=contact.get("name"),
         industry=contact.get("industry"),
         deal_stage=contact.get("deal_stage", "New"),
     )
