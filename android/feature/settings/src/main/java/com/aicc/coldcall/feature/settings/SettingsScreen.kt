@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -30,7 +31,7 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var urlInput by rememberSaveable { mutableStateOf(state.backendUrl) }
-    var tokenInput by rememberSaveable { mutableStateOf("") }
+    var tokenInput by remember { mutableStateOf("") }
 
     LaunchedEffect(state.backendUrl) { urlInput = state.backendUrl }
 

@@ -30,6 +30,7 @@ android {
 
 dependencies {
     implementation(project(":core:model"))
+    implementation(project(":core:network"))
     implementation(project(":core:ui"))
     implementation(project(":data:api"))
     implementation(project(":data:recording"))
