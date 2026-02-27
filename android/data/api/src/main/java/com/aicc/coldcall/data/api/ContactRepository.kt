@@ -8,9 +8,13 @@ import com.aicc.coldcall.core.network.AiccApiService
 import com.aicc.coldcall.core.network.dto.ContactCreateDto
 import com.aicc.coldcall.core.network.dto.ContactUpdateDto
 import com.aicc.coldcall.core.network.dto.toDomain
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,7 +26,11 @@ class ContactRepository @Inject constructor(
     fun getContacts(): Flow<List<Contact>> =
         contactDao.getAll()
             .map { entities -> entities.map { it.toDomain() } }
-            .onStart { refreshFromApi() }
+            .onStart {
+                CoroutineScope(currentCoroutineContext() + Job()).launch {
+                    refreshFromApi()
+                }
+            }
 
     private suspend fun refreshFromApi() {
         try {
