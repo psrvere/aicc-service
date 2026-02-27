@@ -99,9 +99,9 @@ fun PostCallScreen(
                     onRegenerate = { viewModel.regenerateSummary() },
                 )
             }
-            aiStatus == AiPipelineStatus.ERROR -> {
+            aiStatus == AiPipelineStatus.COMPLETED || aiStatus == AiPipelineStatus.ERROR -> {
                 Text(
-                    text = state.aiError ?: "AI pipeline failed",
+                    text = state.aiError ?: "AI pipeline returned no summary",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                 )
