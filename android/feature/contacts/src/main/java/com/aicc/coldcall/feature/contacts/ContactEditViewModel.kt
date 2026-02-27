@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.cancellation.CancellationException
 import javax.inject.Inject
 
 data class ContactEditUiState(
@@ -70,6 +71,8 @@ class ContactEditViewModel @Inject constructor(
                         isLoading = false,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
@@ -159,6 +162,8 @@ class ContactEditViewModel @Inject constructor(
                     )
                 }
                 _uiState.update { it.copy(isLoading = false, isSaved = true, error = null) }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             } finally {
