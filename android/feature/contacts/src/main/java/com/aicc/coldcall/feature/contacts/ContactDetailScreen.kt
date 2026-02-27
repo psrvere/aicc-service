@@ -95,112 +95,117 @@ fun ContactDetailScreen(
             )
         },
     ) { padding ->
-        state.contact?.let { contact ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                // Contact header
-                item {
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text(
-                                    text = contact.name,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                )
-                                DealStageBadge(stage = contact.dealStage)
-                            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            if (state.error != null) {
+                Text(
+                    text = state.error!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
 
-                            Spacer(modifier = Modifier.height(8.dp))
+            state.contact?.let { contact ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    // Contact header
+                    item {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(
+                                        text = contact.name,
+                                        style = MaterialTheme.typography.headlineSmall,
+                                    )
+                                    DealStageBadge(stage = contact.dealStage)
+                                }
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text(
-                                    text = contact.phone,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                                Icon(
-                                    Icons.Default.Call,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-
-                            contact.business?.let {
-                                DetailRow("Business", it)
-                            }
-                            contact.city?.let {
-                                DetailRow("City", it)
-                            }
-                            contact.industry?.let {
-                                DetailRow("Industry", it)
-                            }
-                            DetailRow("Calls", contact.callCount.toString())
-                            contact.lastCalled?.let {
-                                DetailRow("Last Called", it)
-                            }
-                            contact.nextFollowUp?.let {
-                                DetailRow("Follow-up", it)
-                            }
-                            contact.notes?.let {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Notes",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Text(
-                                    text = it,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                            contact.lastCallSummary?.let {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Last Call Summary",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                Text(
-                                    text = it,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(
+                                        text = contact.phone,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                    Icon(
+                                        Icons.Default.Call,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+
+                                contact.business?.let {
+                                    DetailRow("Business", it)
+                                }
+                                contact.city?.let {
+                                    DetailRow("City", it)
+                                }
+                                contact.industry?.let {
+                                    DetailRow("Industry", it)
+                                }
+                                DetailRow("Calls", contact.callCount.toString())
+                                contact.lastCalled?.let {
+                                    DetailRow("Last Called", it)
+                                }
+                                contact.nextFollowUp?.let {
+                                    DetailRow("Follow-up", it)
+                                }
+                                contact.notes?.let {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Notes",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                                contact.lastCallSummary?.let {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Last Call Summary",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
                             }
                         }
                     }
-                }
 
-                // Call history header
-                if (state.callHistory.isNotEmpty()) {
-                    item {
-                        Text(
-                            text = "Call History",
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
+                    // Call history header
+                    if (state.callHistory.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Call History",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
 
-                    items(state.callHistory, key = { it.id }) { callLog ->
-                        CallLogCard(callLog)
+                        items(state.callHistory, key = { it.id }) { callLog ->
+                            CallLogCard(callLog)
+                        }
                     }
                 }
             }
-        }
-
-        if (state.error != null) {
-            Text(
-                text = state.error!!,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(16.dp),
-            )
         }
     }
 }
