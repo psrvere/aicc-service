@@ -50,7 +50,7 @@ class ServerConfigStoreTest {
             scope = testScope,
             produceFile = { tmpFolder.newFile("test_settings.preferences_pb") }
         )
-        store = ServerConfigStore(dataStore, encryptedPrefs)
+        store = ServerConfigStore(dataStore, encryptedPrefs, testScope)
     }
 
     @Test

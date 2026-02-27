@@ -100,11 +100,13 @@ fun ContactDetailScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            if (state.error != null) {
+            if (state.error != null && state.contact == null) {
                 Text(
                     text = state.error!!,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
                 )
             }
 

@@ -26,6 +26,12 @@ fun NavGraphBuilder.contactsGraph(navController: NavController) {
             )
         }
 
+        composable(CONTACT_CREATE_ROUTE) {
+            ContactEditScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
         composable(
             route = CONTACT_DETAIL_ROUTE,
             arguments = listOf(navArgument("contactId") { type = NavType.StringType }),
@@ -42,12 +48,6 @@ fun NavGraphBuilder.contactsGraph(navController: NavController) {
             route = CONTACT_EDIT_ROUTE,
             arguments = listOf(navArgument("contactId") { type = NavType.StringType }),
         ) {
-            ContactEditScreen(
-                onNavigateBack = { navController.popBackStack() },
-            )
-        }
-
-        composable(CONTACT_CREATE_ROUTE) {
             ContactEditScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
