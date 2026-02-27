@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -115,12 +116,14 @@ class ContactListViewModelTest {
 
     @Test
     fun `error state on repository failure`() = runTest {
-        every { contactRepository.getContacts() } returns flowOf(emptyList())
+        every { contactRepository.getContacts() } returns flow { throw RuntimeException("Network error") }
 
         val vm = ContactListViewModel(contactRepository)
         advanceUntilIdle()
 
-        assertTrue(vm.uiState.value.contacts.isEmpty())
+        assertFalse(vm.uiState.value.isLoading)
+        assertFalse(vm.uiState.value.isRefreshing)
+        assertEquals("Network error", vm.uiState.value.error)
     }
 
     @Test
