@@ -382,6 +382,83 @@ class PostCallViewModelTest {
     }
 
     @Test
+    fun `confirmAiSummary persists AI data and clears pipeline status`() = runTest {
+        stubCallLog()
+        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { aiPipelineRepository.transcribe(any()) } returns "transcript text"
+        coEvery { aiPipelineRepository.summarize(any(), any()) } returns AISummary(
+            summary = "AI summary",
+            recommendedDealStage = DealStage.Qualified,
+            nextAction = "Send proposal",
+        )
+
+        val vm = createVm(recordingFilePath = "/path/recording.m4a")
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.Connected)
+        vm.saveCall()
+        advanceUntilIdle()
+        assertEquals(AiPipelineStatus.COMPLETED, vm.uiState.value.aiPipelineStatus)
+
+        val dtoSlot = slot<CallLogCreateDto>()
+        coEvery { callLogRepository.logCall(capture(dtoSlot)) } returns CallLog(
+            id = "log2",
+            contactId = "c1",
+            timestamp = "2026-02-27T10:00:00",
+            durationSeconds = 0,
+            disposition = Disposition.Connected,
+            dealStage = DealStage.Qualified,
+        )
+
+        vm.confirmAiSummary()
+        advanceUntilIdle()
+
+        val dto = dtoSlot.captured
+        assertEquals("AI summary", dto.summary)
+        assertEquals("Qualified", dto.dealStage)
+        assertEquals("https://cdn.example.com/r1.m4a", dto.recordingUrl)
+        assertEquals("transcript text", dto.transcript)
+        assertNull(vm.uiState.value.aiPipelineStatus)
+        assertTrue(vm.uiState.value.isSaved)
+    }
+
+    @Test
+    fun `confirmAiSummary persists user-edited summary`() = runTest {
+        stubCallLog()
+        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { aiPipelineRepository.transcribe(any()) } returns "transcript"
+        coEvery { aiPipelineRepository.summarize(any(), any()) } returns AISummary(
+            summary = "Original",
+            recommendedDealStage = DealStage.New,
+            nextAction = "Follow up",
+        )
+
+        val vm = createVm(recordingFilePath = "/path/recording.m4a")
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.Connected)
+        vm.saveCall()
+        advanceUntilIdle()
+
+        vm.updateAiSummary("User-edited summary")
+
+        val dtoSlot = slot<CallLogCreateDto>()
+        coEvery { callLogRepository.logCall(capture(dtoSlot)) } returns CallLog(
+            id = "log2",
+            contactId = "c1",
+            timestamp = "2026-02-27T10:00:00",
+            durationSeconds = 0,
+            disposition = Disposition.Connected,
+            dealStage = DealStage.New,
+        )
+
+        vm.confirmAiSummary()
+        advanceUntilIdle()
+
+        assertEquals("User-edited summary", dtoSlot.captured.summary)
+    }
+
+    @Test
     fun `AI pipeline error sets ERROR status and message`() = runTest {
         stubCallLog()
         coEvery { recordingUploader.uploadSingle(any(), any()) } throws RuntimeException("Upload failed")

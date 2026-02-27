@@ -95,7 +95,7 @@ fun PostCallScreen(
                 AISummaryCard(
                     summary = state.aiSummary!!,
                     onSummaryEdit = { viewModel.updateAiSummary(it) },
-                    onConfirm = onSaved,
+                    onConfirm = { viewModel.confirmAiSummary() },
                     onRegenerate = { viewModel.regenerateSummary() },
                 )
             }

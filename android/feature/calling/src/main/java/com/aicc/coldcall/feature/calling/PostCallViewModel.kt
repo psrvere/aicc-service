@@ -146,6 +146,32 @@ class PostCallViewModel @AssistedInject constructor(
         }
     }
 
+    fun confirmAiSummary() {
+        val currentState = _uiState.value
+        val aiSummary = currentState.aiSummary ?: return
+        val disposition = currentState.disposition ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true, error = null) }
+            try {
+                val dto = CallLogCreateDto(
+                    contactId = currentState.contactId,
+                    durationSeconds = currentState.durationSeconds,
+                    disposition = disposition.name,
+                    summary = aiSummary.summary,
+                    dealStage = aiSummary.recommendedDealStage.name,
+                    recordingUrl = currentState.recordingUrl,
+                    transcript = currentState.transcript,
+                    nextFollowUp = currentState.followUpDate,
+                )
+                callLogRepository.logCall(dto)
+                _uiState.update { it.copy(isSaving = false, aiPipelineStatus = null) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSaving = false, aiError = e.message) }
+            }
+        }
+    }
+
     fun regenerateSummary() {
         val transcript = _uiState.value.transcript ?: return
         viewModelScope.launch {
