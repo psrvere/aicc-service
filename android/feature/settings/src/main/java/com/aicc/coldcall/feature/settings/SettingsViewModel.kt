@@ -46,10 +46,11 @@ class SettingsViewModel @Inject constructor(
             if (token.isNotBlank()) {
                 serverConfigStore.saveToken(token)
             }
+            val savedToken = serverConfigStore.getToken()
             _uiState.update {
                 it.copy(
                     backendUrl = url,
-                    isSignedIn = token.isNotBlank(),
+                    isSignedIn = savedToken != null,
                 )
             }
         }
