@@ -71,18 +71,11 @@ fun DashboardScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        StatChip(label = "Calls Today", value = state.stats.callsToday.toString())
-                        StatChip(label = "Connected", value = state.stats.connectedToday.toString())
-                        StatChip(
-                            label = "Conv. Rate",
-                            value = "${(state.stats.conversionRate * 100).toInt()}%",
-                        )
-                        StatChip(
-                            label = "Streak",
-                            value = "${state.stats.streak}d",
-                        )
+                        StatChip(label = "Calls Today", value = state.stats.callsToday.toString(), modifier = Modifier.weight(1f))
+                        StatChip(label = "Connected", value = state.stats.connectedToday.toString(), modifier = Modifier.weight(1f))
+                        StatChip(label = "Conv. Rate", value = "${(state.stats.conversionRate * 100).toInt()}%", modifier = Modifier.weight(1f))
+                        StatChip(label = "Streak", value = "${state.stats.streak}d", modifier = Modifier.weight(1f))
                     }
                 }
 
@@ -115,8 +108,8 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun StatChip(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun StatChip(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
         Text(
             text = value,
             style = MaterialTheme.typography.titleLarge,
