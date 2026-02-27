@@ -130,7 +130,7 @@ fun ContactDetailScreen(
                                 )
                                 Icon(
                                     Icons.Default.Call,
-                                    contentDescription = "Call",
+                                    contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                 )
                             }
