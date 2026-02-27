@@ -30,7 +30,7 @@ fun PostCallScreen(
     val state by viewModel.uiState.collectAsState()
 
     LaunchedEffect(state.isSaved) {
-        if (state.isSaved) {
+        if (state.isSaved && state.aiPipelineStatus == null) {
             onSaved()
         }
     }
@@ -86,6 +86,29 @@ fun PostCallScreen(
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium,
             )
+        }
+
+        // AI Pipeline section
+        val aiStatus = state.aiPipelineStatus
+        when {
+            aiStatus == AiPipelineStatus.COMPLETED && state.aiSummary != null -> {
+                AISummaryCard(
+                    summary = state.aiSummary!!,
+                    onSummaryEdit = { viewModel.updateAiSummary(it) },
+                    onConfirm = onSaved,
+                    onRegenerate = { viewModel.regenerateSummary() },
+                )
+            }
+            aiStatus == AiPipelineStatus.ERROR -> {
+                Text(
+                    text = state.aiError ?: "AI pipeline failed",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            aiStatus != null -> {
+                AiPipelineProgress(status = aiStatus)
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))

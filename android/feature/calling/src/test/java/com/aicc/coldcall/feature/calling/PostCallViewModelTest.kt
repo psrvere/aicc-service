@@ -1,10 +1,13 @@
 package com.aicc.coldcall.feature.calling
 
+import com.aicc.coldcall.core.model.AISummary
 import com.aicc.coldcall.core.model.CallLog
 import com.aicc.coldcall.core.model.DealStage
 import com.aicc.coldcall.core.model.Disposition
 import com.aicc.coldcall.core.network.dto.CallLogCreateDto
 import com.aicc.coldcall.data.api.CallLogRepository
+import com.aicc.coldcall.data.recording.AiPipelineRepository
+import com.aicc.coldcall.data.recording.RecordingUploader
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -29,6 +32,8 @@ import java.time.LocalDate
 class PostCallViewModelTest {
 
     private val callLogRepository = mockk<CallLogRepository>()
+    private val aiPipelineRepository = mockk<AiPipelineRepository>()
+    private val recordingUploader = mockk<RecordingUploader>()
     private val testDispatcher = StandardTestDispatcher()
 
     private val today = LocalDate.of(2026, 2, 27)
@@ -43,12 +48,28 @@ class PostCallViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createVm() = PostCallViewModel(
+    private fun createVm(recordingFilePath: String? = null) = PostCallViewModel(
         callLogRepository = callLogRepository,
+        aiPipelineRepository = aiPipelineRepository,
+        recordingUploader = recordingUploader,
         contactId = "c1",
         contactName = "Alice",
         clock = { today },
+        recordingFilePath = recordingFilePath,
     )
+
+    private fun stubCallLog() {
+        coEvery { callLogRepository.logCall(any()) } returns CallLog(
+            id = "log1",
+            contactId = "c1",
+            timestamp = "2026-02-27T10:00:00",
+            durationSeconds = 0,
+            disposition = Disposition.Connected,
+            dealStage = DealStage.Contacted,
+        )
+    }
+
+    // --- Existing tests ---
 
     @Test
     fun `initial state has no disposition selected`() = runTest {
@@ -152,14 +173,7 @@ class PostCallViewModelTest {
 
     @Test
     fun `saveCall sets isSaved on success`() = runTest {
-        coEvery { callLogRepository.logCall(any()) } returns CallLog(
-            id = "log1",
-            contactId = "c1",
-            timestamp = "2026-02-27T10:00:00",
-            durationSeconds = 0,
-            disposition = Disposition.Connected,
-            dealStage = DealStage.Contacted,
-        )
+        stubCallLog()
 
         val vm = createVm()
         advanceUntilIdle()
@@ -209,5 +223,177 @@ class PostCallViewModelTest {
         advanceUntilIdle()
 
         assertEquals(today.plusDays(1).toString(), dtoSlot.captured.nextFollowUp)
+    }
+
+    // --- AI Pipeline tests ---
+
+    @Test
+    fun `Connected with recording triggers AI pipeline after save`() = runTest {
+        stubCallLog()
+        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { aiPipelineRepository.transcribe(any()) } returns "Hello, sales call transcript"
+        coEvery { aiPipelineRepository.summarize(any(), any()) } returns AISummary(
+            summary = "Discussed pricing",
+            recommendedDealStage = DealStage.Qualified,
+            nextAction = "Send proposal",
+        )
+
+        val vm = createVm(recordingFilePath = "/path/to/recording.m4a")
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.Connected)
+        vm.saveCall()
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertEquals(AiPipelineStatus.COMPLETED, state.aiPipelineStatus)
+        assertEquals("Discussed pricing", state.aiSummary?.summary)
+        assertEquals(DealStage.Qualified, state.aiSummary?.recommendedDealStage)
+        assertEquals("Send proposal", state.aiSummary?.nextAction)
+        assertEquals("https://cdn.example.com/r1.m4a", state.recordingUrl)
+        assertEquals("Hello, sales call transcript", state.transcript)
+    }
+
+    @Test
+    fun `AI pipeline progresses through status transitions`() = runTest {
+        stubCallLog()
+        val statuses = mutableListOf<AiPipelineStatus?>()
+
+        coEvery { recordingUploader.uploadSingle(any(), any()) } coAnswers {
+            statuses.add(AiPipelineStatus.UPLOADING)
+            "https://cdn.example.com/r1.m4a"
+        }
+        coEvery { aiPipelineRepository.transcribe(any()) } coAnswers {
+            statuses.add(AiPipelineStatus.TRANSCRIBING)
+            "transcript"
+        }
+        coEvery { aiPipelineRepository.summarize(any(), any()) } coAnswers {
+            statuses.add(AiPipelineStatus.SUMMARIZING)
+            AISummary("summary", DealStage.New, "action")
+        }
+
+        val vm = createVm(recordingFilePath = "/path/recording.m4a")
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.Connected)
+        vm.saveCall()
+        advanceUntilIdle()
+
+        // Each step was reached before the next was called
+        assertEquals(
+            listOf(AiPipelineStatus.UPLOADING, AiPipelineStatus.TRANSCRIBING, AiPipelineStatus.SUMMARIZING),
+            statuses,
+        )
+        assertEquals(AiPipelineStatus.COMPLETED, vm.uiState.value.aiPipelineStatus)
+    }
+
+    @Test
+    fun `user edits AI summary updates state`() = runTest {
+        stubCallLog()
+        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { aiPipelineRepository.transcribe(any()) } returns "transcript"
+        coEvery { aiPipelineRepository.summarize(any(), any()) } returns AISummary(
+            summary = "Original summary",
+            recommendedDealStage = DealStage.Qualified,
+            nextAction = "Follow up",
+        )
+
+        val vm = createVm(recordingFilePath = "/path/recording.m4a")
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.Connected)
+        vm.saveCall()
+        advanceUntilIdle()
+
+        vm.updateAiSummary("Edited summary")
+
+        assertEquals("Edited summary", vm.uiState.value.aiSummary?.summary)
+        // Other fields preserved
+        assertEquals(DealStage.Qualified, vm.uiState.value.aiSummary?.recommendedDealStage)
+    }
+
+    @Test
+    fun `regenerateSummary re-calls summarize with existing transcript`() = runTest {
+        stubCallLog()
+        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { aiPipelineRepository.transcribe(any()) } returns "transcript text"
+        coEvery { aiPipelineRepository.summarize("c1", "transcript text") } returns AISummary(
+            summary = "First summary",
+            recommendedDealStage = DealStage.Qualified,
+            nextAction = "Send proposal",
+        ) andThen AISummary(
+            summary = "Regenerated summary",
+            recommendedDealStage = DealStage.Proposal,
+            nextAction = "Schedule demo",
+        )
+
+        val vm = createVm(recordingFilePath = "/path/recording.m4a")
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.Connected)
+        vm.saveCall()
+        advanceUntilIdle()
+
+        assertEquals("First summary", vm.uiState.value.aiSummary?.summary)
+
+        vm.regenerateSummary()
+        advanceUntilIdle()
+
+        assertEquals("Regenerated summary", vm.uiState.value.aiSummary?.summary)
+        assertEquals(DealStage.Proposal, vm.uiState.value.aiSummary?.recommendedDealStage)
+        assertEquals(AiPipelineStatus.COMPLETED, vm.uiState.value.aiPipelineStatus)
+    }
+
+    @Test
+    fun `non-Connected disposition does not trigger AI pipeline`() = runTest {
+        coEvery { callLogRepository.logCall(any()) } returns CallLog(
+            id = "log1",
+            contactId = "c1",
+            timestamp = "2026-02-27T10:00:00",
+            durationSeconds = 0,
+            disposition = Disposition.NoAnswer,
+            dealStage = DealStage.Contacted,
+        )
+
+        val vm = createVm(recordingFilePath = "/path/recording.m4a")
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.NoAnswer)
+        vm.saveCall()
+        advanceUntilIdle()
+
+        assertNull(vm.uiState.value.aiPipelineStatus)
+        coVerify(exactly = 0) { recordingUploader.uploadSingle(any(), any()) }
+    }
+
+    @Test
+    fun `no recording file does not trigger AI pipeline even for Connected`() = runTest {
+        stubCallLog()
+
+        val vm = createVm(recordingFilePath = null)
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.Connected)
+        vm.saveCall()
+        advanceUntilIdle()
+
+        assertNull(vm.uiState.value.aiPipelineStatus)
+        coVerify(exactly = 0) { recordingUploader.uploadSingle(any(), any()) }
+    }
+
+    @Test
+    fun `AI pipeline error sets ERROR status and message`() = runTest {
+        stubCallLog()
+        coEvery { recordingUploader.uploadSingle(any(), any()) } throws RuntimeException("Upload failed")
+
+        val vm = createVm(recordingFilePath = "/path/recording.m4a")
+        advanceUntilIdle()
+
+        vm.selectDisposition(Disposition.Connected)
+        vm.saveCall()
+        advanceUntilIdle()
+
+        assertEquals(AiPipelineStatus.ERROR, vm.uiState.value.aiPipelineStatus)
+        assertEquals("Upload failed", vm.uiState.value.aiError)
     }
 }
