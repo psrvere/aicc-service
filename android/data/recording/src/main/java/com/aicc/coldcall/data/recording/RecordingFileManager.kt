@@ -1,13 +1,19 @@
 package com.aicc.coldcall.data.recording
 
 import java.io.File
+import java.io.IOException
 
 class RecordingFileManager(private val filesDir: File) {
 
-    private val recordingsDir: File
-        get() = File(filesDir, "recordings").also { it.mkdirs() }
+    private val recordingsDir = File(filesDir, "recordings")
 
     fun createRecordingFile(contactId: String, timestamp: Long): File {
+        if (!recordingsDir.exists() && !recordingsDir.mkdirs()) {
+            throw IOException("Failed to create recordings directory: ${recordingsDir.absolutePath}")
+        }
+        if (!recordingsDir.isDirectory) {
+            throw IOException("Recordings path is not a directory: ${recordingsDir.absolutePath}")
+        }
         val sanitizedId = contactId.replace(Regex("[^a-zA-Z0-9_-]"), "_")
         val fileName = "call_${sanitizedId}_$timestamp.m4a"
         val file = File(recordingsDir, fileName)
@@ -20,9 +26,8 @@ class RecordingFileManager(private val filesDir: File) {
     }
 
     fun deleteFilesOlderThan(thresholdMs: Long): Int {
-        val dir = recordingsDir
-        if (!dir.exists()) return 0
-        val oldFiles = dir.listFiles()?.filter { it.lastModified() < thresholdMs } ?: return 0
+        if (!recordingsDir.isDirectory) return 0
+        val oldFiles = recordingsDir.listFiles()?.filter { it.lastModified() < thresholdMs } ?: return 0
         return oldFiles.count { it.delete() }
     }
 }
