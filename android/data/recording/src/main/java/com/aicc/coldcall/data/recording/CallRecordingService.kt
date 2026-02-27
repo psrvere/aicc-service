@@ -92,13 +92,17 @@ class CallRecordingService : Service() {
     private fun stopRecording() {
         serviceScope.launch {
             recorderMutex.withLock {
-                try {
-                    mediaRecorder?.apply {
-                        stop()
-                        release()
+                mediaRecorder?.let { recorder ->
+                    try {
+                        recorder.stop()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error stopping MediaRecorder", e)
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error stopping MediaRecorder", e)
+                    try {
+                        recorder.release()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error releasing MediaRecorder", e)
+                    }
                 }
                 mediaRecorder = null
             }
