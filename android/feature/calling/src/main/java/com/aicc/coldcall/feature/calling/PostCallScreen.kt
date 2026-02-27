@@ -29,7 +29,7 @@ fun PostCallScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(state.isSaved) {
+    LaunchedEffect(state.isSaved, state.aiPipelineStatus) {
         if (state.isSaved && state.aiPipelineStatus == null) {
             onSaved()
         }
