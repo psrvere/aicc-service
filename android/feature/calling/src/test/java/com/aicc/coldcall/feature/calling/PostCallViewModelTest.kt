@@ -230,7 +230,7 @@ class PostCallViewModelTest {
     @Test
     fun `Connected with recording triggers AI pipeline after save`() = runTest {
         stubCallLog()
-        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { recordingUploader.uploadFile(any()) } returns "https://cdn.example.com/r1.m4a"
         coEvery { aiPipelineRepository.transcribe(any()) } returns "Hello, sales call transcript"
         coEvery { aiPipelineRepository.summarize(any(), any()) } returns AISummary(
             summary = "Discussed pricing",
@@ -259,7 +259,7 @@ class PostCallViewModelTest {
         stubCallLog()
         val statuses = mutableListOf<AiPipelineStatus?>()
 
-        coEvery { recordingUploader.uploadSingle(any(), any()) } coAnswers {
+        coEvery { recordingUploader.uploadFile(any()) } coAnswers {
             statuses.add(AiPipelineStatus.UPLOADING)
             "https://cdn.example.com/r1.m4a"
         }
@@ -290,7 +290,7 @@ class PostCallViewModelTest {
     @Test
     fun `user edits AI summary updates state`() = runTest {
         stubCallLog()
-        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { recordingUploader.uploadFile(any()) } returns "https://cdn.example.com/r1.m4a"
         coEvery { aiPipelineRepository.transcribe(any()) } returns "transcript"
         coEvery { aiPipelineRepository.summarize(any(), any()) } returns AISummary(
             summary = "Original summary",
@@ -315,7 +315,7 @@ class PostCallViewModelTest {
     @Test
     fun `regenerateSummary re-calls summarize with existing transcript`() = runTest {
         stubCallLog()
-        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { recordingUploader.uploadFile(any()) } returns "https://cdn.example.com/r1.m4a"
         coEvery { aiPipelineRepository.transcribe(any()) } returns "transcript text"
         coEvery { aiPipelineRepository.summarize("c1", "transcript text") } returns AISummary(
             summary = "First summary",
@@ -363,7 +363,7 @@ class PostCallViewModelTest {
         advanceUntilIdle()
 
         assertNull(vm.uiState.value.aiPipelineStatus)
-        coVerify(exactly = 0) { recordingUploader.uploadSingle(any(), any()) }
+        coVerify(exactly = 0) { recordingUploader.uploadFile(any()) }
     }
 
     @Test
@@ -378,13 +378,13 @@ class PostCallViewModelTest {
         advanceUntilIdle()
 
         assertNull(vm.uiState.value.aiPipelineStatus)
-        coVerify(exactly = 0) { recordingUploader.uploadSingle(any(), any()) }
+        coVerify(exactly = 0) { recordingUploader.uploadFile(any()) }
     }
 
     @Test
     fun `confirmAiSummary persists AI data and clears pipeline status`() = runTest {
         stubCallLog()
-        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { recordingUploader.uploadFile(any()) } returns "https://cdn.example.com/r1.m4a"
         coEvery { aiPipelineRepository.transcribe(any()) } returns "transcript text"
         coEvery { aiPipelineRepository.summarize(any(), any()) } returns AISummary(
             summary = "AI summary",
@@ -425,7 +425,7 @@ class PostCallViewModelTest {
     @Test
     fun `confirmAiSummary persists user-edited summary`() = runTest {
         stubCallLog()
-        coEvery { recordingUploader.uploadSingle(any(), any()) } returns "https://cdn.example.com/r1.m4a"
+        coEvery { recordingUploader.uploadFile(any()) } returns "https://cdn.example.com/r1.m4a"
         coEvery { aiPipelineRepository.transcribe(any()) } returns "transcript"
         coEvery { aiPipelineRepository.summarize(any(), any()) } returns AISummary(
             summary = "Original",
@@ -461,7 +461,7 @@ class PostCallViewModelTest {
     @Test
     fun `AI pipeline error sets ERROR status and message`() = runTest {
         stubCallLog()
-        coEvery { recordingUploader.uploadSingle(any(), any()) } throws RuntimeException("Upload failed")
+        coEvery { recordingUploader.uploadFile(any()) } throws RuntimeException("Upload failed")
 
         val vm = createVm(recordingFilePath = "/path/recording.m4a")
         advanceUntilIdle()

@@ -75,9 +75,20 @@ class RecordingUploadWorkerTest {
         coVerify { recordingRepository.markUploaded(1L, "https://cdn.example.com/r1.m4a") }
     }
 
+    @Test
+    fun `uploadFile uploads and returns URL without marking DB`() = runTest {
+        val file = File(tempDir, "call_c1_100.m4a").apply { createNewFile() }
+        coEvery { api.uploadRecording(any()) } returns RecordingUploadResponseDto("https://cdn.example.com/r1.m4a")
+
+        val url = uploader.uploadFile(file.absolutePath)
+
+        assertEquals("https://cdn.example.com/r1.m4a", url)
+        coVerify(exactly = 0) { recordingRepository.markUploaded(any(), any()) }
+    }
+
     @Test(expected = IllegalStateException::class)
-    fun `uploadSingle throws when file does not exist`() = runTest {
-        uploader.uploadSingle(1L, "/nonexistent/path/recording.m4a")
+    fun `uploadFile throws when file does not exist`() = runTest {
+        uploader.uploadFile("/nonexistent/path/recording.m4a")
     }
 
     @Test

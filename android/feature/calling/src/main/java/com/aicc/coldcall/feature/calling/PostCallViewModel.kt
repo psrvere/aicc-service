@@ -118,7 +118,7 @@ class PostCallViewModel @AssistedInject constructor(
             try {
                 _uiState.update { it.copy(aiPipelineStatus = AiPipelineStatus.UPLOADING, aiError = null) }
 
-                val url = recordingUploader.uploadSingle(0L, filePath)
+                val url = recordingUploader.uploadFile(filePath)
                 _uiState.update { it.copy(recordingUrl = url, aiPipelineStatus = AiPipelineStatus.TRANSCRIBING) }
 
                 val transcript = aiPipelineRepository.transcribe(url)
