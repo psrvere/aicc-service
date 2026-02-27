@@ -2,9 +2,12 @@ package com.aicc.coldcall.feature.calling
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aicc.coldcall.core.model.AISummary
 import com.aicc.coldcall.core.model.Disposition
 import com.aicc.coldcall.core.network.dto.CallLogCreateDto
 import com.aicc.coldcall.data.api.CallLogRepository
+import com.aicc.coldcall.data.recording.AiPipelineRepository
+import com.aicc.coldcall.data.recording.RecordingUploader
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -15,6 +18,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import kotlin.coroutines.cancellation.CancellationException
+
+enum class AiPipelineStatus {
+    UPLOADING,
+    TRANSCRIBING,
+    SUMMARIZING,
+    COMPLETED,
+    ERROR,
+}
 
 data class PostCallUiState(
     val contactId: String = "",
@@ -26,14 +38,22 @@ data class PostCallUiState(
     val isSaving: Boolean = false,
     val error: String? = null,
     val isSaved: Boolean = false,
+    val aiPipelineStatus: AiPipelineStatus? = null,
+    val aiSummary: AISummary? = null,
+    val recordingUrl: String? = null,
+    val transcript: String? = null,
+    val aiError: String? = null,
 )
 
 @HiltViewModel(assistedFactory = PostCallViewModel.Factory::class)
 class PostCallViewModel @AssistedInject constructor(
     private val callLogRepository: CallLogRepository,
+    private val aiPipelineRepository: AiPipelineRepository,
+    private val recordingUploader: RecordingUploader,
     @Assisted("contactId") private val contactId: String,
     @Assisted("contactName") private val contactName: String,
     @Assisted private val clock: () -> LocalDate,
+    @Assisted("recordingFilePath") private val recordingFilePath: String?,
 ) : ViewModel() {
 
     @AssistedFactory
@@ -42,6 +62,7 @@ class PostCallViewModel @AssistedInject constructor(
             @Assisted("contactId") contactId: String,
             @Assisted("contactName") contactName: String,
             clock: () -> LocalDate,
+            @Assisted("recordingFilePath") recordingFilePath: String?,
         ): PostCallViewModel
     }
 
@@ -81,9 +102,93 @@ class PostCallViewModel @AssistedInject constructor(
                 )
                 callLogRepository.logCall(dto)
                 _uiState.update { it.copy(isSaving = false, isSaved = true) }
+
+                if (disposition == Disposition.Connected && recordingFilePath != null) {
+                    runAiPipeline(recordingFilePath)
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(isSaving = false, error = e.message)
+                }
+            }
+        }
+    }
+
+    private fun runAiPipeline(filePath: String) {
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(aiPipelineStatus = AiPipelineStatus.UPLOADING, aiError = null) }
+
+                val url = recordingUploader.uploadFile(filePath)
+                _uiState.update { it.copy(recordingUrl = url, aiPipelineStatus = AiPipelineStatus.TRANSCRIBING) }
+
+                val transcript = aiPipelineRepository.transcribe(url)
+                _uiState.update { it.copy(transcript = transcript, aiPipelineStatus = AiPipelineStatus.SUMMARIZING) }
+
+                val summary = aiPipelineRepository.summarize(contactId, transcript)
+                _uiState.update {
+                    it.copy(
+                        aiSummary = summary,
+                        aiPipelineStatus = AiPipelineStatus.COMPLETED,
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(aiPipelineStatus = AiPipelineStatus.ERROR, aiError = e.message)
+                }
+            }
+        }
+    }
+
+    fun updateAiSummary(text: String) {
+        val current = _uiState.value.aiSummary ?: return
+        _uiState.update {
+            it.copy(aiSummary = current.copy(summary = text))
+        }
+    }
+
+    fun confirmAiSummary() {
+        val currentState = _uiState.value
+        val aiSummary = currentState.aiSummary ?: return
+        val disposition = currentState.disposition ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true, error = null) }
+            try {
+                val dto = CallLogCreateDto(
+                    contactId = currentState.contactId,
+                    durationSeconds = currentState.durationSeconds,
+                    disposition = disposition.name,
+                    summary = aiSummary.summary,
+                    dealStage = aiSummary.recommendedDealStage.name,
+                    recordingUrl = currentState.recordingUrl,
+                    transcript = currentState.transcript,
+                    nextFollowUp = currentState.followUpDate,
+                )
+                callLogRepository.logCall(dto)
+                _uiState.update { it.copy(isSaving = false, aiPipelineStatus = null) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSaving = false, aiError = e.message) }
+            }
+        }
+    }
+
+    fun regenerateSummary() {
+        val transcript = _uiState.value.transcript ?: return
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(aiPipelineStatus = AiPipelineStatus.SUMMARIZING, aiError = null) }
+                val summary = aiPipelineRepository.summarize(contactId, transcript)
+                _uiState.update {
+                    it.copy(aiSummary = summary, aiPipelineStatus = AiPipelineStatus.COMPLETED)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(aiPipelineStatus = AiPipelineStatus.ERROR, aiError = e.message)
                 }
             }
         }
