@@ -19,7 +19,7 @@ class RecordingFileManager(private val filesDir: File) {
         val file = File(recordingsDir, fileName)
         if (!file.createNewFile()) {
             throw IllegalStateException(
-                "Recording file already exists: $fileName (contactId=$contactId, timestamp=$timestamp)"
+                "Recording file already exists: $fileName (sanitizedId=$sanitizedId, timestamp=$timestamp)"
             )
         }
         return file
