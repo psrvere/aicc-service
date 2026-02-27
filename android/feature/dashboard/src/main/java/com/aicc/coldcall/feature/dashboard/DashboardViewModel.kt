@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.CancellationException
 import javax.inject.Inject
 
 data class DashboardUiState(
@@ -36,6 +37,8 @@ class DashboardViewModel @Inject constructor(
             try {
                 val stats = dashboardRepository.getStats()
                 _uiState.update { it.copy(stats = stats, isLoading = false) }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
