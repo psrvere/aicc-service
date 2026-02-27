@@ -8,6 +8,7 @@ import com.aicc.coldcall.core.network.AiccApiService
 import com.aicc.coldcall.core.network.dto.ContactCreateDto
 import com.aicc.coldcall.core.network.dto.ContactUpdateDto
 import com.aicc.coldcall.core.network.dto.toDomain
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
@@ -37,6 +38,8 @@ class ContactRepository @Inject constructor(
             val dtos = api.getContacts()
             val entities = dtos.map { it.toDomain().toEntity() }
             contactDao.insertAll(entities)
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             // Offline — fall back to cached data
         }
