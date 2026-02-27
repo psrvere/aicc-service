@@ -9,6 +9,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aicc.coldcall.core.model.DealStage
 
+private val dealStageLabels = mapOf(
+    DealStage.New to "New",
+    DealStage.Contacted to "Contacted",
+    DealStage.Qualified to "Qualified",
+    DealStage.Proposal to "Proposal",
+    DealStage.Negotiation to "Negotiation",
+    DealStage.Won to "Won",
+    DealStage.Lost to "Lost",
+    DealStage.NotInterested to "Not Interested",
+)
+
 @Composable
 fun DealStageBadge(stage: DealStage, modifier: Modifier = Modifier) {
     val color = DealStageColors.forStage(stage)
@@ -19,7 +30,7 @@ fun DealStageBadge(stage: DealStage, modifier: Modifier = Modifier) {
         contentColor = color,
     ) {
         Text(
-            text = stage.name,
+            text = dealStageLabels[stage] ?: stage.name,
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
         )
