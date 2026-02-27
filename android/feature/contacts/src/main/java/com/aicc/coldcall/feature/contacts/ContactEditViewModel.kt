@@ -158,7 +158,7 @@ class ContactEditViewModel @Inject constructor(
                         )
                     )
                 }
-                _uiState.update { it.copy(isLoading = false, isSaved = true) }
+                _uiState.update { it.copy(isLoading = false, isSaved = true, error = null) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             } finally {
