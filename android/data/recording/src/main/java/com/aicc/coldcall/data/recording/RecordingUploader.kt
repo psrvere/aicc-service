@@ -31,6 +31,9 @@ class RecordingUploader @Inject constructor(
 
     suspend fun uploadSingle(recordingId: Long, filePath: String): String {
         val file = File(filePath)
+        if (!file.isFile) {
+            throw IllegalStateException("Recording file not found: $filePath")
+        }
         val requestBody = file.asRequestBody("audio/mp4".toMediaType())
         val part = MultipartBody.Part.createFormData("file", file.name, requestBody)
         val response = api.uploadRecording(part)

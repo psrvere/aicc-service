@@ -74,6 +74,11 @@ class RecordingUploadWorkerTest {
         coVerify { recordingRepository.markUploaded(1L, "https://cdn.example.com/r1.m4a") }
     }
 
+    @Test(expected = IllegalStateException::class)
+    fun `uploadSingle throws when file does not exist`() = runTest {
+        uploader.uploadSingle(1L, "/nonexistent/path/recording.m4a")
+    }
+
     @Test
     fun `uploadPending returns true when no pending uploads`() = runTest {
         coEvery { recordingRepository.getPendingUploads() } returns emptyList()
