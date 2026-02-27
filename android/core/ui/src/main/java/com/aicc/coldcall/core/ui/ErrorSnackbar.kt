@@ -6,6 +6,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.aicc.coldcall.core.ui.R
 
 @Composable
 fun ErrorSnackbar(
@@ -18,7 +20,7 @@ fun ErrorSnackbar(
         action = {
             onRetry?.let {
                 TextButton(onClick = it) {
-                    Text("Retry")
+                    Text(stringResource(R.string.retry))
                 }
             }
         },
