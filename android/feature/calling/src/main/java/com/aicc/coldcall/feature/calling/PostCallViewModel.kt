@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import kotlin.coroutines.cancellation.CancellationException
 
 enum class AiPipelineStatus {
     UPLOADING,
@@ -131,6 +132,8 @@ class PostCallViewModel @AssistedInject constructor(
                         aiPipelineStatus = AiPipelineStatus.COMPLETED,
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(aiPipelineStatus = AiPipelineStatus.ERROR, aiError = e.message)
@@ -181,6 +184,8 @@ class PostCallViewModel @AssistedInject constructor(
                 _uiState.update {
                     it.copy(aiSummary = summary, aiPipelineStatus = AiPipelineStatus.COMPLETED)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(aiPipelineStatus = AiPipelineStatus.ERROR, aiError = e.message)
