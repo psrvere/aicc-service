@@ -2,7 +2,6 @@ package com.aicc.coldcall.feature.settings
 
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,7 +35,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `loads saved backend URL on init`() = runTest {
-        every { serverConfigStore.getBaseUrl() } returns "https://api.example.com/"
+        coEvery { serverConfigStore.getBaseUrl() } returns "https://api.example.com/"
         coEvery { serverConfigStore.getToken() } returns "token-123"
 
         val vm = SettingsViewModel(serverConfigStore)
@@ -48,7 +47,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `isSignedIn is false when no token`() = runTest {
-        every { serverConfigStore.getBaseUrl() } returns "http://10.0.2.2:8000/"
+        coEvery { serverConfigStore.getBaseUrl() } returns "http://10.0.2.2:8000/"
         coEvery { serverConfigStore.getToken() } returns null
 
         val vm = SettingsViewModel(serverConfigStore)
@@ -59,7 +58,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `saveSettings persists URL and token`() = runTest {
-        every { serverConfigStore.getBaseUrl() } returns "http://10.0.2.2:8000/"
+        coEvery { serverConfigStore.getBaseUrl() } returns "http://10.0.2.2:8000/"
         coEvery { serverConfigStore.getToken() } returns null
 
         val vm = SettingsViewModel(serverConfigStore)
@@ -74,7 +73,7 @@ class SettingsViewModelTest {
 
     @Test
     fun `signOut clears token`() = runTest {
-        every { serverConfigStore.getBaseUrl() } returns "http://10.0.2.2:8000/"
+        coEvery { serverConfigStore.getBaseUrl() } returns "http://10.0.2.2:8000/"
         coEvery { serverConfigStore.getToken() } returns "token-123"
 
         val vm = SettingsViewModel(serverConfigStore)

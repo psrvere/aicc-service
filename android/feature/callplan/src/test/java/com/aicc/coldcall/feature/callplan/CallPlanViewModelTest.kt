@@ -122,6 +122,45 @@ class CallPlanViewModelTest {
     }
 
     @Test
+    fun `refresh preserves completedIds for items still in plan`() = runTest {
+        coEvery { callPlanRepository.getTodayPlan() } returns sampleItems
+
+        val vm = CallPlanViewModel(callPlanRepository)
+        advanceUntilIdle()
+
+        vm.markAsCompleted("1")
+        vm.markAsCompleted("2")
+
+        vm.refresh()
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertTrue(state.completedIds.contains("1"))
+        assertTrue(state.completedIds.contains("2"))
+    }
+
+    @Test
+    fun `refresh removes completedIds for items no longer in plan`() = runTest {
+        coEvery { callPlanRepository.getTodayPlan() } returns sampleItems
+
+        val vm = CallPlanViewModel(callPlanRepository)
+        advanceUntilIdle()
+
+        vm.markAsCompleted("1")
+        vm.markAsCompleted("3")
+
+        // Refresh returns only item "1"
+        coEvery { callPlanRepository.getTodayPlan() } returns sampleItems.take(1)
+
+        vm.refresh()
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertTrue(state.completedIds.contains("1"))
+        assertFalse(state.completedIds.contains("3"))
+    }
+
+    @Test
     fun `error state when API fails`() = runTest {
         coEvery { callPlanRepository.getTodayPlan() } throws RuntimeException("Network error")
 

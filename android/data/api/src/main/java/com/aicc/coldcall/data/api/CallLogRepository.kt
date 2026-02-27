@@ -1,12 +1,15 @@
 package com.aicc.coldcall.data.api
 
 import com.aicc.coldcall.core.database.CallLogDao
+import com.aicc.coldcall.core.database.toDomain
 import com.aicc.coldcall.core.database.toEntity
 import com.aicc.coldcall.core.model.CallLog
 import com.aicc.coldcall.core.network.AiccApiService
 import com.aicc.coldcall.core.network.dto.CallLogCreateDto
 import com.aicc.coldcall.core.network.dto.toDomain
 import android.util.Log
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,6 +27,9 @@ class CallLogRepository @Inject constructor(
         }
         return callLog
     }
+
+    fun getByContactId(contactId: String): Flow<List<CallLog>> =
+        callLogDao.getByContactId(contactId).map { entities -> entities.map { it.toDomain() } }
 
     companion object {
         private const val TAG = "CallLogRepository"

@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import java.time.LocalDate
 
-const val PRE_CALL_ROUTE = "precall/{contactId}/{contactName}/{contactPhone}"
+const val PRE_CALL_ROUTE = "precall/{contactId}/{contactName}"
 const val POST_CALL_ROUTE = "postcall/{contactId}/{contactName}"
 
 fun NavGraphBuilder.preCallScreen(
@@ -19,7 +19,6 @@ fun NavGraphBuilder.preCallScreen(
         arguments = listOf(
             navArgument("contactId") { type = NavType.StringType },
             navArgument("contactName") { type = NavType.StringType },
-            navArgument("contactPhone") { type = NavType.StringType },
         ),
     ) { backStackEntry ->
         val contactId = backStackEntry.arguments?.getString("contactId") ?: return@composable

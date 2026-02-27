@@ -18,8 +18,11 @@ fun ErrorSnackbar(
     Snackbar(
         modifier = modifier,
         action = {
-            onRetry?.let {
-                TextButton(onClick = it) {
+            onRetry?.let { retry ->
+                TextButton(onClick = {
+                    snackbarData.performAction()
+                    retry()
+                }) {
                     Text(stringResource(R.string.retry))
                 }
             }

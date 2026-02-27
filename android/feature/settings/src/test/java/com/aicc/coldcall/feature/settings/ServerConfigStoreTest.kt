@@ -54,7 +54,7 @@ class ServerConfigStoreTest {
     }
 
     @Test
-    fun `getBaseUrl returns default when nothing saved`() {
+    fun `getBaseUrl returns default when nothing saved`() = runTest {
         val url = store.getBaseUrl()
         assertEquals("http://10.0.2.2:8000/", url)
     }

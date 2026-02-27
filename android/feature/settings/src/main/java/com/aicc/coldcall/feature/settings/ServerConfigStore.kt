@@ -9,7 +9,6 @@ import com.aicc.coldcall.core.network.BaseUrlProvider
 import com.aicc.coldcall.core.network.TokenProvider
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -26,9 +25,8 @@ class ServerConfigStore @Inject constructor(
         const val DEFAULT_URL = "http://10.0.2.2:8000/"
     }
 
-    override fun getBaseUrl(): String = runBlocking {
+    override suspend fun getBaseUrl(): String =
         dataStore.data.map { prefs -> prefs[BACKEND_URL_KEY] ?: DEFAULT_URL }.first()
-    }
 
     override suspend fun getToken(): String? =
         encryptedPrefs.getString(AUTH_TOKEN_KEY, null)

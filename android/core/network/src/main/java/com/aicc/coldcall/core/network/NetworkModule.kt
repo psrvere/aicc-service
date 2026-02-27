@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import kotlinx.coroutines.runBlocking
 import retrofit2.Retrofit
 import com.squareup.moshi.Moshi
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -44,7 +45,7 @@ object NetworkModule {
         moshi: Moshi
     ): Retrofit =
         Retrofit.Builder()
-            .baseUrl(baseUrlProvider.getBaseUrl())
+            .baseUrl(runBlocking { baseUrlProvider.getBaseUrl() })
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()

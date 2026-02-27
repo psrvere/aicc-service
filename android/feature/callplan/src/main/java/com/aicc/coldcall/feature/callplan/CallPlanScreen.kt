@@ -33,7 +33,7 @@ import com.aicc.coldcall.core.ui.DealStageBadge
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CallPlanScreen(
-    onContactClick: (id: String, name: String, phone: String) -> Unit,
+    onContactClick: (id: String, name: String) -> Unit,
     viewModel: CallPlanViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -77,7 +77,7 @@ fun CallPlanScreen(
                         isCompleted = isCompleted,
                         onClick = {
                             if (!isCompleted) {
-                                onContactClick(item.id, item.name, item.phone)
+                                onContactClick(item.id, item.name)
                             }
                         },
                     )

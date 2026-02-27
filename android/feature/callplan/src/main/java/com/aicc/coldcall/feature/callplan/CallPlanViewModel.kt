@@ -39,12 +39,14 @@ class CallPlanViewModel @Inject constructor(
             try {
                 val items = callPlanRepository.getTodayPlan()
                 val followUps = items.count { it.reason.contains("Follow-up", ignoreCase = true) }
+                val itemIds = items.map { it.id }.toSet()
                 _uiState.update {
                     it.copy(
                         planItems = items,
                         isLoading = false,
                         followUpCount = followUps,
                         newContactCount = items.size - followUps,
+                        completedIds = it.completedIds.filter { id -> id in itemIds }.toSet(),
                     )
                 }
             } catch (e: Exception) {

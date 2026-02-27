@@ -6,7 +6,7 @@ import androidx.navigation.compose.composable
 const val CALL_PLAN_ROUTE = "callplan"
 
 fun NavGraphBuilder.callPlanScreen(
-    onContactClick: (id: String, name: String, phone: String) -> Unit,
+    onContactClick: (id: String, name: String) -> Unit,
 ) {
     composable(CALL_PLAN_ROUTE) {
         CallPlanScreen(onContactClick = onContactClick)
