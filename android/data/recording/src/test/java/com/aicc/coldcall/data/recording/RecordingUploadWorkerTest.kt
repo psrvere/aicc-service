@@ -61,6 +61,7 @@ class RecordingUploadWorkerTest {
         val success = uploader.uploadPending()
 
         assertFalse(success)
+        coVerify(exactly = 0) { recordingRepository.markUploaded(any(), any()) }
     }
 
     @Test
