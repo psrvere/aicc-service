@@ -29,7 +29,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `adds Bearer token header when token is available`() {
+    fun `adds X-Api-Key header when token is available`() {
         coEvery { tokenProvider.getToken() } returns "test-token-123"
 
         val interceptor = AuthInterceptor(tokenProvider)
@@ -44,7 +44,7 @@ class AuthInterceptorTest {
         ).execute().use { /* consume and close response */ }
 
         val recorded = mockWebServer.takeRequest()
-        assertEquals("Bearer test-token-123", recorded.getHeader("Authorization"))
+        assertEquals("test-token-123", recorded.getHeader("X-Api-Key"))
     }
 
     @Test
@@ -63,6 +63,6 @@ class AuthInterceptorTest {
         ).execute().use { /* consume and close response */ }
 
         val recorded = mockWebServer.takeRequest()
-        assertNull(recorded.getHeader("Authorization"))
+        assertNull(recorded.getHeader("X-Api-Key"))
     }
 }

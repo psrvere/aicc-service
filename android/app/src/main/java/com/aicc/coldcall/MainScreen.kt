@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -36,7 +35,6 @@ val bottomNavItems = listOf(
     BottomNavItem("Today", Icons.Default.DateRange, CALL_PLAN_ROUTE),
     BottomNavItem("Contacts", Icons.Default.Person, CONTACTS_GRAPH_ROUTE, listOf(CONTACTS_GRAPH_ROUTE, CONTACT_LIST_ROUTE)),
     BottomNavItem("Dashboard", Icons.Default.Star, DASHBOARD_ROUTE),
-    BottomNavItem("Settings", Icons.Default.Settings, SETTINGS_ROUTE),
 )
 
 @Composable

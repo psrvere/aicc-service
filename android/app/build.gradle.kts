@@ -6,6 +6,14 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+import java.util.Properties
+
+val localProps = Properties()
+rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { localProps.load(it) }
+
+val baseUrl = localProps.getProperty("AICC_BASE_URL", "").trim().ifEmpty { "http://10.0.2.2:8000/" }
+val apiKey = localProps.getProperty("AICC_API_KEY", "").trim()
+
 android {
     namespace = "com.aicc.coldcall"
     compileSdk = 35
@@ -16,6 +24,9 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+        buildConfigField("String", "API_KEY", "\"$apiKey\"")
     }
 
     buildTypes {
@@ -39,6 +50,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -52,7 +64,6 @@ dependencies {
     implementation(project(":feature:callplan"))
     implementation(project(":feature:calling"))
     implementation(project(":feature:contacts"))
-    implementation(project(":feature:settings"))
     implementation(project(":feature:dashboard"))
 
     implementation(libs.core.ktx)
@@ -67,4 +78,5 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
 
     testImplementation(libs.junit)
+    testImplementation(libs.coroutines.test)
 }
