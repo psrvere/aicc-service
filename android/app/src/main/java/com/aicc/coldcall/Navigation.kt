@@ -7,16 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import com.aicc.coldcall.feature.callplan.CALL_PLAN_ROUTE
 import com.aicc.coldcall.feature.callplan.callPlanScreen
 import com.aicc.coldcall.feature.calling.postCallScreen
 import com.aicc.coldcall.feature.calling.preCallScreen
 import com.aicc.coldcall.feature.contacts.contactsGraph
 import com.aicc.coldcall.feature.dashboard.dashboardScreen
-import com.aicc.coldcall.feature.settings.SettingsScreen
-
-const val SETTINGS_ROUTE = "settings"
 
 @Composable
 fun AppNavHost(
@@ -59,9 +55,5 @@ fun AppNavHost(
         contactsGraph(navController)
 
         dashboardScreen()
-
-        composable(SETTINGS_ROUTE) {
-            SettingsScreen()
-        }
     }
 }

@@ -16,7 +16,7 @@ class AuthInterceptor @Inject constructor(
 
         val request = if (!token.isNullOrBlank()) {
             original.newBuilder()
-                .header("Authorization", "Bearer $token")
+                .header("X-Api-Key", token)
                 .build()
         } else {
             original
