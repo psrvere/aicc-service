@@ -53,7 +53,7 @@ async def log_call(
     # Update contact
     update_data = {
         "call_count": contact.get("call_count", 0) + 1,
-        "last_called": call_log["timestamp"],
+        "last_called": date.today().isoformat(),
     }
     if call.summary:
         update_data["last_call_summary"] = call.summary
